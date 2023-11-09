@@ -1,5 +1,7 @@
+using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Web.Dtos;
 
 namespace Web.Controllers;
 
@@ -16,8 +18,12 @@ public class ProductionController : ControllerBase
 
     [HttpPost]
     [Route("productionplan")]
-    public IActionResult ProductionPlan()
+    public ActionResult<IEnumerable<PowerPlantProductionDto>> ProductionPlan(ProductionPlanRequestDto request)
     {
-        return Ok();
+        return Ok(
+            _productionService.ComputeProductionPlan(
+                request.Load,
+                request.Powerplants.Select(powerPlant => powerPlant.MapTo(request.Fuels)).ToList())
+            .Select(PowerPlantProductionDto.MapFrom));
     }
 }

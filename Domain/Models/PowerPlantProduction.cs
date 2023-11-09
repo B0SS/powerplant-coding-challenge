@@ -2,10 +2,9 @@
 
 namespace Web.Dtos;
 
-public class PowerPlantPower
+public class PowerPlantProduction
 {
     public string Name { get; set; }
 
-    [JsonPropertyName("p")]
-    public double Power { get; set; }
+    public decimal Power { get; set; }
 }
