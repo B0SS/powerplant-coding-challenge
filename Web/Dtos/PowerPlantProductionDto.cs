@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+﻿using Services.Models;
 using System.Text.Json.Serialization;
 
 namespace Web.Dtos;

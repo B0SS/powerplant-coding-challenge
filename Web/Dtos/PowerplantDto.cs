@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+﻿using Services.Models;
 
 namespace Web.Dtos;
 
