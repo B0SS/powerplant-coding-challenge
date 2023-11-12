@@ -20,10 +20,16 @@ public class ProductionController : ControllerBase
     [Route("productionplan")]
     public ActionResult<IEnumerable<PowerPlantProductionDto>> ProductionPlan(ProductionPlanRequestDto request)
     {
-        return Ok(
-            _productionService.ComputeProductionPlan(
+        try
+        {
+            var powerPlantProductions = _productionService.ComputeProductionPlan(
                 request.Load,
-                request.Powerplants.Select(powerPlant => powerPlant.MapTo(request.Fuels)).ToList())
-            .Select(PowerPlantProductionDto.MapFrom));
+                request.Powerplants.Select(powerPlant => powerPlant.MapTo(request.Fuels)).ToList());
+            return Ok(powerPlantProductions.Select(PowerPlantProductionDto.MapFrom));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

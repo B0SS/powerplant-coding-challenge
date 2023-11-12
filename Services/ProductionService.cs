@@ -1,5 +1,4 @@
 ﻿using Services.Models;
-using System.Linq;
 using Web.Dtos;
 
 namespace Services;
@@ -8,21 +7,20 @@ public class ProductionService
 {
     public IEnumerable<PowerPlantProduction> ComputeProductionPlan(int load, IReadOnlyCollection<PowerPlant> powerPlants)
     {
-        decimal totalPowerProduced = 0;
-        var orderOfMerit = powerPlants
+        decimal powerLeftToProduce = load;
+        var availablePlants = powerPlants
             .Where(plant => plant.PMax > 0)
             .ToList();
-        decimal totalCost = 0;
-        
-        while (totalPowerProduced < load)
-        {
-            var powerLeftToProduce = load - totalPowerProduced;
 
-            var powerPlant = orderOfMerit
-                .OrderBy(plant => (
-                    (plant.CostOfOperation(powerLeftToProduce) / Math.Min(plant.PMax, powerLeftToProduce))
-                    + (plant.PowerProduced(powerLeftToProduce) / powerLeftToProduce)
-                    )/2)
+        if (availablePlants.Sum(plant => plant.PMax) < load) {
+            throw new ArgumentException("The power plants do not have a production capacity sufficient to match the load.");
+        }
+
+        while (powerLeftToProduce > 0)
+        {
+            var powerPlant = availablePlants
+                .OrderBy(plant => plant.MarginalCost(powerLeftToProduce))
+                .ThenBy(plant => Math.Abs(powerLeftToProduce - plant.PowerProduced(powerLeftToProduce)))
                 .First();
 
             var production = new PowerPlantProduction
@@ -31,10 +29,9 @@ public class ProductionService
                 Power = powerPlant.PowerProduced(powerLeftToProduce)
             };
 
-            totalPowerProduced += production.Power;
+            powerLeftToProduce -= production.Power;
 
-            orderOfMerit.Remove(powerPlant);
-            totalCost += powerPlant.CostOfOperation(powerLeftToProduce);
+            availablePlants.Remove(powerPlant);
 
             yield return production;
         }

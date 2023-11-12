@@ -18,6 +18,8 @@ public abstract class PowerPlant
 
     public abstract decimal CostPerMwh { get; }
 
+    public decimal MarginalCost(decimal load) => CostOfOperation(load) / Math.Min(PMax, load);
+
     public decimal CostOfOperation(decimal load) => PowerProduced(load) * CostPerMwh;
 
     public decimal PowerProduced(decimal load) => Math.Max(Math.Min(PMax, load), PMin);
