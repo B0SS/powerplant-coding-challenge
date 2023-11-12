@@ -17,4 +17,8 @@ public abstract class PowerPlant
     public decimal PMax { get; protected set; }
 
     public abstract decimal CostPerMwh { get; }
+
+    public decimal CostOfOperation(decimal load) => PowerProduced(load) * CostPerMwh;
+
+    public decimal PowerProduced(decimal load) => Math.Max(Math.Min(PMax, load), PMin);
 }

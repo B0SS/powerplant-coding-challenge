@@ -1,4 +1,5 @@
 ﻿using Services.Models;
+using System.Linq;
 using Web.Dtos;
 
 namespace Services;
@@ -8,24 +9,34 @@ public class ProductionService
     public IEnumerable<PowerPlantProduction> ComputeProductionPlan(int load, IReadOnlyCollection<PowerPlant> powerPlants)
     {
         decimal totalPowerProduced = 0;
-        var powerPlantsByCost = powerPlants.OrderBy(powerPlant => powerPlant.CostPerMwh).ToList();
-
-        foreach(var powerPlant in powerPlantsByCost)
+        var orderOfMerit = powerPlants
+            .Where(plant => plant.PMax > 0)
+            .ToList();
+        decimal totalCost = 0;
+        
+        while (totalPowerProduced < load)
         {
             var powerLeftToProduce = load - totalPowerProduced;
 
-            if (powerLeftToProduce + powerPlant.PMin <= load)
+            var powerPlant = orderOfMerit
+                .OrderBy(plant => (
+                    (plant.CostOfOperation(powerLeftToProduce) / Math.Min(plant.PMax, powerLeftToProduce))
+                    + (plant.PowerProduced(powerLeftToProduce) / powerLeftToProduce)
+                    )/2)
+                .First();
+
+            var production = new PowerPlantProduction
             {
-                 var production = new PowerPlantProduction
-                 {
-                     Name = powerPlant.Name,
-                     Power = powerPlant.PMax * Math.Min(powerLeftToProduce / powerPlant.PMax, 1)
-                 };
+                Name = powerPlant.Name,
+                Power = powerPlant.PowerProduced(powerLeftToProduce)
+            };
 
-                totalPowerProduced += production.Power;
+            totalPowerProduced += production.Power;
 
-                yield return production;
-            }
+            orderOfMerit.Remove(powerPlant);
+            totalCost += powerPlant.CostOfOperation(powerLeftToProduce);
+
+            yield return production;
         }
     }
 }
