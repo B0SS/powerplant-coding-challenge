@@ -26,7 +26,7 @@ public class ProductionService
             var production = new PowerPlantProduction
             {
                 Name = powerPlant.Name,
-                Power = powerPlant.PowerProduced(powerLeftToProduce)
+                Power = Math.Round(powerPlant.PowerProduced(powerLeftToProduce), 1)
             };
 
             powerLeftToProduce -= production.Power;

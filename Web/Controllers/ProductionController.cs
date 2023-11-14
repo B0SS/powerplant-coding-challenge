@@ -22,12 +22,18 @@ public class ProductionController : ControllerBase
     {
         try
         {
-            var powerPlantProductions = _productionService.ComputeProductionPlan(
-                request.Load,
-                request.Powerplants.Select(powerPlant => powerPlant.MapTo(request.Fuels)).ToList());
+            var powerPlantProductions = _productionService
+                .ComputeProductionPlan(
+                    request.Load,
+                    request.Powerplants.Select(powerPlant => powerPlant.MapTo(request.Fuels)).ToList())
+                .ToList();
             return Ok(powerPlantProductions.Select(PowerPlantProductionDto.MapFrom));
         }
         catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (NotImplementedException ex)
         {
             return BadRequest(ex.Message);
         }

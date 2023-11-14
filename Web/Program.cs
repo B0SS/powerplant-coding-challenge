@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Diagnostics;
 using Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,17 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.UseExceptionHandler(c => c.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+        if (exception != null)
+        {
+            await context.Response.WriteAsJsonAsync(exception.Message);
+        }
+    }));
 }
 
 app.UseAuthorization();
